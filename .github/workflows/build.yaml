@@ -1,0 +1,24 @@
+name: "Build envoy on windows"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-envoy:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: envoy
+    steps:
+    - name: "Clone Envoy"
+      uses: actions/checkout@v2
+      with:
+        token: ${{ github.token }}
+        repository: envoyproxy/envoy
+        path: envoy
+    - name: "Build Envoy"
+      env:
+        ENVOY_DOCKER_BUILD_DIR: "C:/build"
+      run: |
+        ./ci/run_envoy_docker.sh ci/windows_ci_steps.sh
