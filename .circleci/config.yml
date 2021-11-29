@@ -1,0 +1,28 @@
+version: 2.1
+
+orbs:
+  win: circleci/windows@2.4.1
+
+jobs:
+  build:
+    executor:
+      name: win/default
+    steps:
+    # default shell is Powershell
+    - run:
+        shell: powershell.exe
+        command: $(echo hello | Out-Host; $?) -and $(echo world | Out-Host; $?)
+    - run:
+        shell: bash.exe
+        command: echo hello && echo world
+    - run:
+        shell: cmd.exe
+        command: echo hello & echo world
+    - run:
+        shell: bash.exe
+        command: |
+          git clone https://github.com/envoyproxy/envoy.git
+    - run:
+        shell: bash.exe
+        command: |
+          ls -lah ./envoy
