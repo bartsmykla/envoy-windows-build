@@ -12,6 +12,7 @@ jobs:
   build:
     executor:
       name: win/default
+      size: large
     steps:
     # default shell is Powershell
     - run:
@@ -30,7 +31,8 @@ jobs:
     - run:
         shell: bash.exe
         command: |
-          ls -lah ./envoy
+          pushd envoy
+          ./ci/run_envoy_docker.sh ci/windows_ci_steps.sh
 
 workflows:
   version: 2
