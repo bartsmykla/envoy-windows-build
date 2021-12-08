@@ -20,7 +20,7 @@ Invoke-WebRequest `
 $wantHash = 'f79dbb6dfae9d42d0befb8cff30a145dd32c9b1df6ff280c9935c46884b001f3'.ToUpper()
 $hash = $(Get-FileHash -Path actions-runner-win-x64.zip -Algorithm SHA256).Hash.ToUpper()
 
-if(($hash -ne $wantHash) {
+if($hash -ne $wantHash) {
   throw 'Computed checksum did not match'
 }
 
