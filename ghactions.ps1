@@ -3,7 +3,7 @@ param (
     [string]$LogonAccount = "installer",
     [string]$LogonPassword = $(throw "-LogonPassword is required."),
     [string]$RepositoryURL = $(throw "-RepositoryURL is required."),
-    [string]$RunnerPath = "C:\actions-runner"
+    [string]$RunnerPath = "C:\actions-runner",
     [string]$RunnerZipURI = "https://github.com/actions/runner/releases/download/v2.285.1/actions-runner-win-x64-2.285.1.zip"
 )
 
