@@ -51,3 +51,10 @@ jobs:
             --name envoy-${GITHUB_SHA::7} \
             --resource-group ${{ secrets.AZURE_ENVOY_BUILD_RESOURCE_GROUP }} \
             --yes
+          
+          vmNIC=$(az vm nic list --resource-group $rgName --vm-name $vmName --query [].id -o tsv)
+          az network nic show --ids $vmNIC --query "ipConfigurations[].publicIpAddress.id" -o tsv
+          
+          az network nic show --ids $vmNIC --query "networkSecurityGroup.id" -o tsv
+
+# Delete NSG and IP address
