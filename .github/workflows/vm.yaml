@@ -35,12 +35,12 @@ jobs:
       with:
         github-token: ${{ secrets.GH_TOKEN }}
         script: |
-          const token = await github.rest.actions.createRegistrationTokenForRepo({
+          const response = await github.rest.actions.createRegistrationTokenForRepo({
             owner: "bartsmykla",
             repo: "envoy-windows-build",
           });
           
-          console.log("expires_at", token.expires_at);
+          console.log("response", response);
 
     - name: Delete Azure VM
       uses: azure/CLI@v1
