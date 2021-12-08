@@ -53,8 +53,8 @@ jobs:
             --yes
           
           vmNIC=$(az vm nic list --resource-group $rgName --vm-name $vmName --query [].id -o tsv)
-          az network nic show --ids $vmNIC --query "ipConfigurations[].publicIpAddress.id" -o tsv
           
+          az network nic show --ids $vmNIC --query "ipConfigurations[].publicIpAddress.id" -o tsv
           az network nic show --ids $vmNIC --query "networkSecurityGroup.id" -o tsv
 
 # Delete NSG and IP address
