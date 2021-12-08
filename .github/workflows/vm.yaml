@@ -29,3 +29,13 @@ jobs:
             --nic-delete-option Delete \
             --license-type Windows_Client \
             --size ${{ secrets.AZURE_ENVOY_VM_SIZE }}
+
+    - uses: actions/github-script@v5
+      with:
+        script: |
+          const token = await octokit.rest.actions.createRegistrationTokenForRepo({
+            owner: "bartsmykla",
+            repo: "envoy-windows-build",
+          });
+          
+          console.log("expires_at", token.expires_at);
