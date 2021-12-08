@@ -30,7 +30,8 @@ jobs:
             --license-type Windows_Client \
             --size ${{ secrets.AZURE_ENVOY_VM_SIZE }}
 
-    - uses: actions/github-script@v5
+    - name: Create Registration Token for Custom Runner
+      uses: actions/github-script@v5
       with:
         script: |
           const token = await github.rest.actions.createRegistrationTokenForRepo({
