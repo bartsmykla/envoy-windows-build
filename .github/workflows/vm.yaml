@@ -28,4 +28,4 @@ jobs:
             --os-disk-delete-option Delete \
             --nic-delete-option Delete \
             --license-type Windows_Client \
-            --size Standard_D8s_v3
+            --size ${{ secrets.AZURE_ENVOY_VM_SIZE }}
