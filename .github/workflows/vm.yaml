@@ -47,14 +47,21 @@ jobs:
       with:
         azcliversion: 2.31.0
         inlineScript: |
+          vmNIC=$(az vm nic list --resource-group ${{ secrets.AZURE_ENVOY_BUILD_RESOURCE_GROUP }} --vm-name envoy-${GITHUB_SHA::7} --query [].id -o tsv)
+          
+          az network nic show \
+            --ids $vmNIC \
+            --query "ipConfigurations[].publicIpAddress.id" \
+            -o tsv
+          az network nic show \
+            --ids $vmNIC \
+            --query "networkSecurityGroup.id" \
+            -o tsv
+          
           az vm delete \
             --name envoy-${GITHUB_SHA::7} \
             --resource-group ${{ secrets.AZURE_ENVOY_BUILD_RESOURCE_GROUP }} \
             --yes
           
-          vmNIC=$(az vm nic list --resource-group ${{ secrets.AZURE_ENVOY_BUILD_RESOURCE_GROUP }} --vm-name envoy-${GITHUB_SHA::7} --query [].id -o tsv)
-          
-          az network nic show --ids $vmNIC --query "ipConfigurations[].publicIpAddress.id" -o tsv
-          az network nic show --ids $vmNIC --query "networkSecurityGroup.id" -o tsv
 
 # Delete NSG and IP address
