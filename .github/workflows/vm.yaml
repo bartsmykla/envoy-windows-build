@@ -18,7 +18,7 @@ jobs:
         azcliversion: 2.31.0
         inlineScript: |
           az vm create \
-            --name envoy-build-win2019-${GITHUB_SHA::7} \
+            --name envoy-${GITHUB_SHA::7} \
             --resource-group ${{ secrets.AZURE_ENVOY_BUILD_RESOURCE_GROUP }} \
             --image ${{ secrets.AZURE_ENVOY_BUILD_IMAGE }} \
             --admin-username ${{ secrets.AZURE_ENVOY_ADMIN_USERNAME }} \
