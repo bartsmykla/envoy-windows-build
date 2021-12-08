@@ -33,6 +33,7 @@ jobs:
     - name: Create Registration Token for Custom Runner
       uses: actions/github-script@v5
       with:
+        github-token: ${{ secrets.GH_TOKEN }}
         script: |
           const token = await github.rest.actions.createRegistrationTokenForRepo({
             owner: "bartsmykla",
