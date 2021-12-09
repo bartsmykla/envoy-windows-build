@@ -44,6 +44,7 @@ jobs:
 
     - name: Delete Azure VM
       uses: azure/CLI@v1
+      if: always()
       with:
         azcliversion: 2.31.0
         inlineScript: |
@@ -51,27 +52,31 @@ jobs:
             --resource-group ${{ secrets.AZURE_ENVOY_BUILD_RESOURCE_GROUP }} \
             --vm-name envoy-${GITHUB_SHA::7} \
             --query [].id \
-            -o tsv)
+            -o tsv 2> /dev/null)
           
-          vmIP=$(az network nic show \
-            --ids $vmNIC \
-            --query "ipConfigurations[].publicIpAddress.id" \
-            -o tsv)
+          if [ -n $wmNIC ]; then
+            vmIP=$(az network nic show \
+              --ids $vmNIC \
+              --query "ipConfigurations[].publicIpAddress.id" \
+              -o tsv 2> /dev/null)
           
-          vmNSG=$(az network nic show \
-            --ids $vmNIC \
-            --query "networkSecurityGroup.id" \
-            -o tsv)
+            vmNSG=$(az network nic show \
+              --ids $vmNIC \
+              --query "networkSecurityGroup.id" \
+              -o tsv 2> /dev/null)
+          fi
           
           az vm delete \
             --name envoy-${GITHUB_SHA::7} \
             --resource-group ${{ secrets.AZURE_ENVOY_BUILD_RESOURCE_GROUP }} \
-            --yes
-          
-          az network public-ip delete \
-            --ids $vmIP
-          
-          az network nsg delete \
-            --ids $vmNSG
+            --yes 2> /dev/null
 
-# Delete NSG and IP address
+          if [ -n $vmIP ]; then          
+            az network public-ip delete \
+              --ids $vmIP
+          fi
+          
+          if [ -n $vmNSG ]; then
+            az network nsg delete \
+              --ids $vmNSG
+          fi
