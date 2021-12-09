@@ -23,12 +23,12 @@ jobs:
             --image ${{ secrets.AZURE_ENVOY_BUILD_IMAGE }} \
             --admin-username ${{ secrets.AZURE_ENVOY_ADMIN_USERNAME }} \
             --admin-password ${{ secrets.AZURE_ENVOY_ADMIN_PASSWORD }} \
+            --size ${{ secrets.AZURE_ENVOY_VM_SIZE }}
             --priority Spot \
             --eviction-policy Delete \
             --os-disk-delete-option Delete \
             --nic-delete-option Delete \
             --license-type Windows_Client \
-            --size ${{ secrets.AZURE_ENVOY_VM_SIZE }}
 
     - name: Create Registration Token for Custom Runner
       uses: actions/github-script@v5
