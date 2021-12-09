@@ -50,7 +50,7 @@ jobs:
         inlineScript: |
           vmID=$(az vm show \
             --resource-group ${{ secrets.AZURE_ENVOY_BUILD_RESOURCE_GROUP }} \
-            --vm-name envoy-${GITHUB_SHA::7} \
+            --name envoy-${GITHUB_SHA::7} \
             --query id \
             -o tsv 2> /dev/null)
           
