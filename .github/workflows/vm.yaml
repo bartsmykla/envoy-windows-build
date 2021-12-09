@@ -64,7 +64,7 @@ jobs:
             --vm-name envoy-${GITHUB_SHA::7} \
             --name CustomScriptExtension \
             --publisher Microsoft.Compute \
-            --protected-settings ${{ steps.runnerToken.outputs.runnerSettings }}
+            --protected-settings '${{ steps.runnerToken.outputs.runnerSettings }}'
 
     - name: Delete Azure VM
       uses: azure/CLI@v1
