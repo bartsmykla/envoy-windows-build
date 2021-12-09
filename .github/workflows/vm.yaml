@@ -40,7 +40,7 @@ jobs:
             repo: "envoy-windows-build",
           });
           
-          console.log("response", response);
+          console.log("response", response.data.expires_at);
 
     - name: Delete Azure VM
       uses: azure/CLI@v1
