@@ -30,8 +30,9 @@ jobs:
             --nic-delete-option Delete \
             --license-type Windows_Client \
 
-    - name: Create Registration Token for Custom Runner
+    - name: Create Registration Token for Custom Runner and generate Runner Settings
       uses: actions/github-script@v5
+      id: runnerToken
       with:
         github-token: ${{ secrets.GH_TOKEN }}
         script: |
@@ -40,7 +41,30 @@ jobs:
             repo: "envoy-windows-build",
           });
           
-          console.log("response", response.data.expires_at);
+          const { token } = response.data;
+          
+          core.setSecret(token);
+          
+          const runnerSettings = JSON.stringify({
+            fileUris: ["https://raw.githubusercontent.com/bartsmykla/envoy-windows-build/main/ghactions.ps1"],
+            commandToExecute: `powershell.exe -File ghactions.ps1 -Token ${token} -LogonPassword ${{ secrets.AZURE_ENVOY_BUILD_LOGON_PASSWORD }} -RepositoryURL https://github.com/bartsmykla/envoy-windows-build`
+          });
+          
+          core.setOutput("runnerSettings", runnerSettings);
+          
+          console.log("runnerSettings", runnerSettings);
+
+    - name: Install Github Actions Agent on Azure VM
+      uses: azure/CLI@v1
+      with:
+        azcliversion: 2.31.0
+        inlineScript: |
+          az vm extension set \
+            --resource-group ${{ secrets.AZURE_ENVOY_BUILD_RESOURCE_GROUP }} \
+            --vm-name envoy-${GITHUB_SHA::7} \
+            --name CustomScriptExtension \
+            --publisher Microsoft.Compute \
+            --protected-settings ${{ steps.runnerToken.outputs.runnerSettings }}
 
     - name: Delete Azure VM
       uses: azure/CLI@v1
