@@ -48,6 +48,12 @@ jobs:
       with:
         azcliversion: 2.31.0
         inlineScript: |
+          vmID=$(az vm show \
+            --resource-group ${{ secrets.AZURE_ENVOY_BUILD_RESOURCE_GROUP }} \
+            --vm-name envoy-${GITHUB_SHA::7} \
+            --query id \
+            -o tsv 2> /dev/null)
+          
           vmNIC=$(az vm nic list \
             --resource-group ${{ secrets.AZURE_ENVOY_BUILD_RESOURCE_GROUP }} \
             --vm-name envoy-${GITHUB_SHA::7} \
@@ -66,10 +72,11 @@ jobs:
               -o tsv 2> /dev/null)
           fi
           
-          az vm delete \
-            --name envoy-${GITHUB_SHA::7} \
-            --resource-group ${{ secrets.AZURE_ENVOY_BUILD_RESOURCE_GROUP }} \
-            --yes 2> /dev/null
+          if [ -n $vmID ]; then
+            az vm delete \
+              --ids $vmID \
+              --yes
+          fi
 
           if [ -n $vmIP ]; then          
             az network public-ip delete \
