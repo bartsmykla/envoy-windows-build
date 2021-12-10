@@ -3,10 +3,10 @@ name: Create Custom VM Image
 on:
   workflow_dispatch:
     inputs:
-      foo:
-        description: "foo description"
+      vmSize:
+        description: Size of the Azure VM which will be spawned to build Envoy
         required: true
-        default: "bar"
+        default: Standard_D8s_v3
 
 jobs:
 #  build-envoy:
@@ -51,7 +51,7 @@ jobs:
             --image ${{ secrets.AZURE_ENVOY_BUILD_IMAGE }} \
             --admin-username ${{ secrets.AZURE_ENVOY_ADMIN_USERNAME }} \
             --admin-password ${{ secrets.AZURE_ENVOY_ADMIN_PASSWORD }} \
-            --size ${{ secrets.AZURE_ENVOY_VM_SIZE }} \
+            --size ${{ github.event.inputs.vmSize }} \
             --priority Spot \
             --eviction-policy Delete \
             --os-disk-delete-option Delete \
