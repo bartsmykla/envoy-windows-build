@@ -7,7 +7,7 @@ on:
         description: Azure VM Image for self-hosted Github Actions Runner
         type: string
         required: true
-        default: Standard_D8s_v3
+        default: /subscriptions/6d1d2295-a73d-4e67-b2ba-0346952e7948/resourceGroups/bs-envoy-build/providers/Microsoft.Compute/images/windows2019 \
       vmSize:
         description: Size of the Azure VM which will be spawned to build Envoy
         type: choice
