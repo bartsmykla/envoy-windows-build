@@ -3,21 +3,32 @@ name: Create Custom VM Image
 on:
   workflow_dispatch:
     inputs:
-      vmSize:
-        description: Size of the Azure VM which will be spawned to build Envoy
+      vmImage:
+        description: Azure VM Image for self-hosted Github Actions Runner
+        type: string
         required: true
         default: Standard_D8s_v3
+      vmSize:
+        description: Size of the Azure VM which will be spawned to build Envoy
+        type: choice
+        required: true
+        default: Standard_D8s_v3
+        options:
+        - Standard_D8s_v3
+        - Standard_D48s_v5
+        - Standard_HB60rs
       commitHash:
         description: The hash of a commit to build Envoy from
+        type: string
         required: true
         default: b16d390f11376e47f479778f2362ea4f48bdc895
       bazelTarget:
         description: Envoy target for Bazel
+        type: string
         required: true
         default: >-
           //contrib/exe:envoy-static
             --//contrib/sxg/filters/http/source:enabled=false
-            --//contrib/vcl/source:enabled=false
 
 jobs:
   build-envoy:
