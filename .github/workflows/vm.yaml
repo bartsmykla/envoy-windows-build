@@ -69,6 +69,7 @@ jobs:
     needs:
     - deploy-custom-windows2019-runner
     - build-envoy
+    if: always()
     runs-on: ubuntu-latest
     steps:
     - name: Log in with Azure
