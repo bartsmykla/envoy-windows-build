@@ -16,7 +16,9 @@ jobs:
   build-envoy:
     needs:
     - deploy-custom-windows2019-runner
-    runs-on: [self-hosted, windows]
+    runs-on:
+    - self-hosted
+    - windows
     defaults:
       run:
         shell: bash
