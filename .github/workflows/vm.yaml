@@ -7,30 +7,110 @@ on:
         description: Size of the Azure VM which will be spawned to build Envoy
         required: true
         default: Standard_D8s_v3
+      commitHash:
+        description: The hash of a commit to build Envoy from
+        required: true
+        default: b16d390f11376e47f479778f2362ea4f48bdc895
 
 jobs:
-#  build-envoy:
-#    needs:
-#    - deploy-custom-windows2019-runner
-#    runs-on: [self-hosted, windows]
-#    defaults:
-#      run:
-#        shell: bash
-#        working-directory: envoy
-#    steps:
-#    - name: "Clone Envoy"
-#      uses: actions/checkout@v2
-#      with:
-#        token: ${{ github.token }}
-#        repository: envoyproxy/envoy
-#        path: envoy
-#
-#    - name: "Build Envoy"
-#      env:
-#        ENVOY_DOCKER_BUILD_DIR: "C:/build"
-#      run: |
-#        //contrib/exe:envoy-static --//contrib/sxg/filters/http/source:enabled=false
-#        ./ci/run_envoy_docker.sh ci/windows_ci_steps.sh
+  build-envoy:
+    needs:
+    - deploy-custom-windows2019-runner
+    runs-on: [self-hosted, windows]
+    defaults:
+      run:
+        shell: bash
+        working-directory: envoy
+    steps:
+    - name: Clone Repository
+      uses: actions/checkout@v2
+      with:
+        token: ${{ github.token }}
+        path: tools
+
+    - name: Clone Envoy
+      uses: actions/checkout@v2
+      with:
+        token: ${{ github.token }}
+        repository: envoyproxy/envoy
+        path: envoy
+
+    - name: Test
+      env:
+        ENVOY_DOCKER_BUILD_DIR: "C:/build"
+      run: |
+        ls -lah ./
+        ls -lah ../
+        ls -lah ../tools || true
+
+  cleanup:
+    needs:
+    - deploy-custom-windows2019-runner
+    - build-envoy
+    runs-on: ubuntu-latest
+    steps:
+    - name: Log in with Azure
+      uses: azure/login@v1
+      with:
+        creds: '${{ secrets.AZURE_CREDENTIALS }}'
+
+  - name: Delete Azure VM
+      uses: azure/CLI@v1
+      if: always()
+      with:
+        azcliversion: 2.31.0
+        inlineScript: |
+          vmID=$(az vm show \
+            --resource-group ${{ secrets.AZURE_ENVOY_BUILD_RESOURCE_GROUP }} \
+            --name envoy-${GITHUB_SHA::7} \
+            --query id \
+            -o tsv 2> /dev/null)
+          
+          vmNIC=$(az vm nic list \
+            --resource-group ${{ secrets.AZURE_ENVOY_BUILD_RESOURCE_GROUP }} \
+            --vm-name envoy-${GITHUB_SHA::7} \
+            --query [].id \
+            -o tsv 2> /dev/null)
+          
+          if [ -n $wmNIC ]; then
+            vmIP=$(az network nic show \
+              --ids $vmNIC \
+              --query "ipConfigurations[].publicIpAddress.id" \
+              -o tsv 2> /dev/null)
+          
+            vmNSG=$(az network nic show \
+              --ids $vmNIC \
+              --query "networkSecurityGroup.id" \
+              -o tsv 2> /dev/null)
+          fi
+          
+          if [ -n $vmID ]; then
+            az vm delete \
+              --ids $vmID \
+              --yes
+          fi
+
+          if [ -n $vmIP ]; then          
+            az network public-ip delete \
+              --ids $vmIP
+          fi
+          
+          if [ -n $vmNSG ]; then
+            az network nsg delete \
+              --ids $vmNSG
+          fi
+
+      - name: List Custom Runners
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.GH_TOKEN }}
+          script: |
+            const response = await github.rest.actions.listSelfHostedRunnersForRepo({
+              owner: "bartsmykla",
+              repo: "envoy-windows-build",
+            });
+            
+            console.log("runners", response);
 
   deploy-custom-windows2019-runner:
     runs-on: ubuntu-latest
@@ -91,61 +171,3 @@ jobs:
             --name CustomScriptExtension \
             --publisher Microsoft.Compute \
             --protected-settings '${{ steps.runnerToken.outputs.runnerSettings }}'
-
-    - name: List Custom Runners
-      uses: actions/github-script@v5
-      with:
-        github-token: ${{ secrets.GH_TOKEN }}
-        script: |
-          const response = await github.rest.actions.listRunnerApplicationsForRepo({
-            owner: "bartsmykla",
-            repo: "envoy-windows-build",
-          });
-          
-          console.log("runners", response);
-
-    - name: Delete Azure VM
-      uses: azure/CLI@v1
-      if: always()
-      with:
-        azcliversion: 2.31.0
-        inlineScript: |
-          vmID=$(az vm show \
-            --resource-group ${{ secrets.AZURE_ENVOY_BUILD_RESOURCE_GROUP }} \
-            --name envoy-${GITHUB_SHA::7} \
-            --query id \
-            -o tsv 2> /dev/null)
-          
-          vmNIC=$(az vm nic list \
-            --resource-group ${{ secrets.AZURE_ENVOY_BUILD_RESOURCE_GROUP }} \
-            --vm-name envoy-${GITHUB_SHA::7} \
-            --query [].id \
-            -o tsv 2> /dev/null)
-          
-          if [ -n $wmNIC ]; then
-            vmIP=$(az network nic show \
-              --ids $vmNIC \
-              --query "ipConfigurations[].publicIpAddress.id" \
-              -o tsv 2> /dev/null)
-          
-            vmNSG=$(az network nic show \
-              --ids $vmNIC \
-              --query "networkSecurityGroup.id" \
-              -o tsv 2> /dev/null)
-          fi
-          
-          if [ -n $vmID ]; then
-            az vm delete \
-              --ids $vmID \
-              --yes
-          fi
-
-          if [ -n $vmIP ]; then          
-            az network public-ip delete \
-              --ids $vmIP
-          fi
-          
-          if [ -n $vmNSG ]; then
-            az network nsg delete \
-              --ids $vmNSG
-          fi
