@@ -11,6 +11,13 @@ on:
         description: The hash of a commit to build Envoy from
         required: true
         default: b16d390f11376e47f479778f2362ea4f48bdc895
+      bazelTarget:
+        description: Envoy target for Bazel
+        required: true
+        default: >-
+          //contrib/exe:envoy-static
+            --//contrib/sxg/filters/http/source:enabled=false
+            --//contrib/vcl/source:enabled=false
 
 jobs:
   build-envoy:
@@ -34,16 +41,29 @@ jobs:
       uses: actions/checkout@v2
       with:
         token: ${{ github.token }}
+        ref: ${{ github.event.inputs.commitHash }}
         repository: envoyproxy/envoy
         path: envoy
 
-    - name: Test
-      env:
-        ENVOY_DOCKER_BUILD_DIR: "C:/build"
+    - name: Patch ./ci/windows_ci_steps.sh script
       run: |
         ls -lah ./
         ls -lah ../
         ls -lah ../tools || true
+        patch ./ci/windows_ci_steps.sh ../tools/windows_ci_steps_sh.patch
+
+    - name: Build Envoy
+      env:
+        ENVOY_DOCKER_BUILD_DIR: "C:/build"
+      run: |
+        ./ci/run_envoy_docker.sh 'ci/windows_ci_steps.sh ${{ github.event.inputs.bazelTarget }}'
+
+    - name: Archive production artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: envoy_binary
+        path: |
+          C:/build/*.tar.gz
 
   cleanup:
     needs:
@@ -55,6 +75,18 @@ jobs:
       uses: azure/login@v1
       with:
         creds: '${{ secrets.AZURE_CREDENTIALS }}'
+
+    - name: List Custom Runners
+      uses: actions/github-script@v5
+      with:
+        github-token: ${{ secrets.GH_TOKEN }}
+        script: |
+          const response = await github.rest.actions.listSelfHostedRunnersForRepo({
+            owner: "bartsmykla",
+            repo: "envoy-windows-build",
+          });
+          
+          console.log("runners", response.data);
 
     - name: Delete Azure VM
       uses: azure/CLI@v1
@@ -102,18 +134,6 @@ jobs:
               --ids $vmNSG
           fi
 
-    - name: List Custom Runners
-      uses: actions/github-script@v5
-      with:
-        github-token: ${{ secrets.GH_TOKEN }}
-        script: |
-          const response = await github.rest.actions.listSelfHostedRunnersForRepo({
-            owner: "bartsmykla",
-            repo: "envoy-windows-build",
-          });
-          
-          console.log("runners", response);
-
   deploy-custom-windows2019-runner:
     runs-on: ubuntu-latest
     steps:
@@ -146,18 +166,21 @@ jobs:
       with:
         github-token: ${{ secrets.GH_TOKEN }}
         script: |
+          const { GITHUB_SHA } = process.env;
           const response = await github.rest.actions.createRegistrationTokenForRepo({
-            owner: "bartsmykla",
-            repo: "envoy-windows-build",
+            owner: context.repo.owner,
+            repo: context.repo.repo,
           });
           
           const { token } = response.data;
           
           core.setSecret(token);
           
+          console.log('context', context);
+          
           const runnerSettings = JSON.stringify({
             fileUris: ["https://raw.githubusercontent.com/bartsmykla/envoy-windows-build/main/ghactions.ps1"],
-            commandToExecute: `powershell.exe -File ghactions.ps1 -Token ${token} -LogonPassword ${{ secrets.AZURE_ENVOY_BUILD_LOGON_PASSWORD }} -RepositoryURL https://github.com/bartsmykla/envoy-windows-build`
+            commandToExecute: `powershell.exe -File ghactions.ps1 -Token ${token} -LogonPassword ${{ secrets.AZURE_ENVOY_BUILD_LOGON_PASSWORD }} -RepositoryURL https://github.com/bartsmykla/envoy-windows-build -Labels ${GITHUB_SHA}`
           });
           
           core.setOutput("runnerSettings", runnerSettings);

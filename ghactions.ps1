@@ -4,7 +4,8 @@ param (
     [string]$LogonPassword = $(throw "-LogonPassword is required."),
     [string]$RepositoryURL = $(throw "-RepositoryURL is required."),
     [string]$RunnerPath = "C:\actions-runner",
-    [string]$RunnerZipURI = "https://github.com/actions/runner/releases/download/v2.285.1/actions-runner-win-x64-2.285.1.zip"
+    [string]$RunnerZipURI = "https://github.com/actions/runner/releases/download/v2.285.1/actions-runner-win-x64-2.285.1.zip",
+    [string]$Labels = "envoy"
 )
 
 If(!(Test-Path $RunnerPath)) {
@@ -31,5 +32,6 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.
   --token $Token `
   --windowslogonaccount $LogonAccount `
   --windowslogonpassword $LogonPassword `
+  --labels $Labels `
   --runasservice `
   --unattended
