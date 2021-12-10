@@ -2,9 +2,37 @@ name: Create Custom VM Image
 
 on:
   workflow_dispatch:
+    inputs:
+      foo:
+        description: "foo description"
+        required: true
+        default: "bar"
 
 jobs:
-  build-envoy-win-2019:
+#  build-envoy:
+#    needs:
+#    - deploy-custom-windows2019-runner
+#    runs-on: [self-hosted, windows]
+#    defaults:
+#      run:
+#        shell: bash
+#        working-directory: envoy
+#    steps:
+#    - name: "Clone Envoy"
+#      uses: actions/checkout@v2
+#      with:
+#        token: ${{ github.token }}
+#        repository: envoyproxy/envoy
+#        path: envoy
+#
+#    - name: "Build Envoy"
+#      env:
+#        ENVOY_DOCKER_BUILD_DIR: "C:/build"
+#      run: |
+#        //contrib/exe:envoy-static --//contrib/sxg/filters/http/source:enabled=false
+#        ./ci/run_envoy_docker.sh ci/windows_ci_steps.sh
+
+  deploy-custom-windows2019-runner:
     runs-on: ubuntu-latest
     steps:
     - name: Log in with Azure
@@ -51,8 +79,6 @@ jobs:
           });
           
           core.setOutput("runnerSettings", runnerSettings);
-          
-          console.log("runnerSettings", runnerSettings);
 
     - name: Install Github Actions Agent on Azure VM
       uses: azure/CLI@v1
@@ -65,6 +91,18 @@ jobs:
             --name CustomScriptExtension \
             --publisher Microsoft.Compute \
             --protected-settings '${{ steps.runnerToken.outputs.runnerSettings }}'
+
+    - name: List Custom Runners
+      uses: actions/github-script@v5
+      with:
+        github-token: ${{ secrets.GH_TOKEN }}
+        script: |
+          const response = await github.rest.actions.listRunnerApplicationsForRepo({
+            owner: "bartsmykla",
+            repo: "envoy-windows-build",
+          });
+          
+          console.log("runners", response);
 
     - name: Delete Azure VM
       uses: azure/CLI@v1

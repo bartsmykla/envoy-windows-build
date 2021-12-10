@@ -14,7 +14,7 @@ If(!(Test-Path $RunnerPath)) {
 Set-Location -Path $RunnerPath
 
 Invoke-WebRequest `
-  -Uri  $RunnerZipURI`
+  -Uri $RunnerZipURI `
   -OutFile actions-runner-win-x64.zip
 
 $wantHash = 'f79dbb6dfae9d42d0befb8cff30a145dd32c9b1df6ff280c9935c46884b001f3'.ToUpper()
