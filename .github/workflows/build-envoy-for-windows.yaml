@@ -1,4 +1,4 @@
-name: Build Envoy for Windows
+name: Build and publish Envoy for Windows
 
 on:
   workflow_dispatch:
