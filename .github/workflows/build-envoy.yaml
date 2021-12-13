@@ -25,7 +25,7 @@ on:
         required: true
         default: "true"
       vmName:
-        description: Name of the Azure VM (envoy-${GITHUB::8} if not set)
+        description: Name of the Azure VM (envoy-${GITHUB_SHA:7} if not set)
         type: string
         required: false
       vmImage:
