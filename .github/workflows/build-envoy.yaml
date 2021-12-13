@@ -14,8 +14,8 @@ on:
         type: boolean
         required: true
         default: "true"
-      releaseArtifact:
-        description: Release built Enovy artifact on https://download.konghq.com/
+      publishArtifact:
+        description: Publish she Enovy artifact on https://download.konghq.com/
         type: boolean
         required: true
         default: "true"
@@ -195,8 +195,8 @@ jobs:
         path: |
           C:/build/envoy/source/exe/envoy.exe
 
-  release-artifact:
-    if: github.event.inputs.releaseArtifact == 'true'
+  publish-artifact:
+    if: github.event.inputs.publishArtifact == 'true'
     needs:
     - build-envoy
     runs-on: ubuntu-latest
@@ -205,7 +205,6 @@ jobs:
       uses: actions/checkout@v2
       with:
         token: ${{ github.token }}
-        ref: 19b4a049a4e913891ab5c5106d4c689b0c16f7ef
         repository: kumahq/kuma
         path: kuma
 
@@ -213,12 +212,12 @@ jobs:
       with:
         name: envoy_${{ github.sha }}
 
-    - name: Display structure of downloaded files
+    - name: Publish the Envoy Artifact
       run: |
         version="$(./kuma/tools/envoy/version.sh ${{ github.event.inputs.commitHash }})"
         name="envoy-${version}-windows"
         mv envoy.exe $name
-        ls -lah
+        ./kuma/tools/envoy/publish.sh $name
 
   cleanup:
     if: github.event.inputs.cleanup == 'true'
