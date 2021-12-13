@@ -20,7 +20,7 @@ jobs:
           let name = context.payload.inputs.vmName;
           
           if (!name) {
-            name = context.sha.substring(0, 7);
+            name = context.sha.substring(0, 8);
           }
           
           core.setOutput("name", name);

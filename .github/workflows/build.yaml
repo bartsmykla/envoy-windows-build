@@ -1,4 +1,4 @@
-name: "Build Envoy for Windows"
+name: Build Envoy for Windows
 
 on:
   workflow_dispatch:
@@ -40,15 +40,18 @@ jobs:
         repository: envoyproxy/envoy
         path: envoy
 
-    - name: Patch ./ci/windows_ci_steps.sh script
+    - name: Patch ./ci/windows_ci_steps.sh
       run: |
         patch ./ci/windows_ci_steps.sh ../tools/windows_ci_steps_sh.patch
 
     - name: Build Envoy
       env:
         ENVOY_DOCKER_BUILD_DIR: "C:/build"
+        # We have to leave some resources free, as if bazel will use all of them
+        # the GitHub Actions Runner service will stop responding and any action
+        # run on this machine will be cancelled
         BAZEL_BUILD_OPTIONS: >-
-          --local_ram_resources=HOST_RAM*.8
+          --local_ram_resources=HOST_RAM*.9
           --local_cpu_resources=HOST_CPUS-1
       run: |
         ./ci/run_envoy_docker.sh 'ci/windows_ci_steps.sh ${{ github.event.inputs.bazelTarget }}'
@@ -58,4 +61,5 @@ jobs:
       with:
         name: envoy_binary
         path: |
-          C:/build/*.tar.gz
+          C:/build/source/exe/*.tar.gz
+          C:/build/source/exe/envoy.exe
