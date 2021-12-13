@@ -64,7 +64,7 @@ on:
 
 jobs:
   deploy-custom-windows2019-runner:
-    if: github.event.inputs.createCustomRunner === "true"
+    if: github.event.inputs.createCustomRunner == 'true'
     runs-on: ubuntu-latest
     steps:
     - name: Set name of the VM to outputs
@@ -147,7 +147,7 @@ jobs:
             --protected-settings '${{ steps.runnerToken.outputs.runnerSettings }}'
 
   build-envoy:
-    if: github.event.inputs.buildEnvoy === "true"
+    if: github.event.inputs.buildEnvoy == 'true'
     runs-on:
     - self-hosted
     - Windows2019
@@ -194,7 +194,7 @@ jobs:
           C:/build/envoy/source/exe/envoy.exe
 
   cleanup:
-    if: github.event.inputs.cleanup === "true"
+    if: github.event.inputs.cleanup == 'true'
     runs-on: ubuntu-latest
     steps:
     - name: Set name of the VM to outputs
