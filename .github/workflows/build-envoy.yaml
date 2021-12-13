@@ -230,7 +230,7 @@ jobs:
           
           console.log("context", context);
           
-          const runners = response.data.runners.filter(({ name }) => name === '${{ steps.setVMName.outputs.name }}'):
+          const runners = response.data.runners.filter(({ name }) => name === '${{ steps.setVMName.outputs.name }}');
           
           console.log("filtered runners", runners);
           
