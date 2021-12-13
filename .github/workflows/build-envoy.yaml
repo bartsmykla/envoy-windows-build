@@ -114,7 +114,9 @@ jobs:
             repo: context.repo.repo,
           });
 
-          core.setSecret(response.data.token);
+          const { token } = response.data;
+
+          core.setSecret(token);
 
           const repositoryURL = `https://github.com/${context.repo.owner}/${context.repo.repo}`;
 
