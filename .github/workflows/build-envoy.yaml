@@ -20,16 +20,16 @@ on:
         required: true
         default: "true"
       cleanup:
-        description: Remove the Custom Runner and destroy the VM
+        description: Remove the Custom Runner and destroy the VM after finish
         type: boolean
         required: true
         default: "true"
       vmName:
-        description: Name of the Azure VM to create
+        description: Name of the Azure VM (envoy-${GITHUB::8} if not set)
         type: string
         required: false
       vmImage:
-        description: Azure VM Image for self-hosted Github Actions Runner
+        description: VM Image for self-hosted Github Actions Runner
         type: string
         required: true
         default: /subscriptions/6d1d2295-a73d-4e67-b2ba-0346952e7948/resourceGroups/bs-envoy-build/providers/Microsoft.Compute/images/windows2019
@@ -195,6 +195,8 @@ jobs:
 
   cleanup:
     if: github.event.inputs.cleanup == 'true'
+    needs:
+    - build-envoy
     runs-on: ubuntu-latest
     steps:
     - name: Set name of the VM to outputs
