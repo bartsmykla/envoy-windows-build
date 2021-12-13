@@ -61,5 +61,5 @@ jobs:
       with:
         name: envoy_binary
         path: |
-          C:/build/source/exe/*.tar.gz
-          C:/build/source/exe/envoy.exe
+          C:/build/envoy/source/exe/*.tar.gz
+          C:/build/envoy/source/exe/envoy.exe
