@@ -213,7 +213,9 @@ jobs:
         name: envoy_${{ github.sha }}
 
     - name: Display structure of downloaded files
-      run: ls -R
+      run: |
+        ls -R
+        ls -R ../
 
   cleanup:
     if: github.event.inputs.cleanup == 'true'
