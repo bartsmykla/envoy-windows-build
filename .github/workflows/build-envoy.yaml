@@ -195,6 +195,18 @@ jobs:
         path: |
           C:/build/envoy/source/exe/envoy.exe
 
+  releaseArtifact:
+    if: github.event.inputs.releaseArtifact == 'true'
+    needs:
+    - build-envoy
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/download-artifact@v2
+      with:
+        name: envoy_${{ github.sha }}
+    - name: Display structure of downloaded files
+      run: ls -R
+
   cleanup:
     if: github.event.inputs.cleanup == 'true'
     needs:
