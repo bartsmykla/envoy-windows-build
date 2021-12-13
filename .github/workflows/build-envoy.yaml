@@ -215,7 +215,10 @@ jobs:
 
     - name: Display structure of downloaded files
       run: |
-        ./kuma/tools/envoy/version.sh ${{ github.event.inputs.commitHash }}
+        version="$(./kuma/tools/envoy/version.sh ${{ github.event.inputs.commitHash }})"
+        name="envoy-${version}-windows"
+        mv envoy.exe $name
+        ls -lah
 
   cleanup:
     if: github.event.inputs.cleanup == 'true'
