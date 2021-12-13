@@ -226,18 +226,8 @@ jobs:
             repo: context.repo.repo,
           });
           
-          console.log("runners", response.data.runners);
-          
-          // const runners = response.data.runners.filter(({ labels }) => {
-          //   return labels.map(({ name }) => name).includes(context.sha);
-          // });
-          
-          console.log("context", context);
-          
           const runners = response.data.runners.filter(({ name }) => name === '${{ steps.setVMName.outputs.name }}');
-          
-          console.log("filtered runners", runners);
-          
+
           await Promise.all(runners.map(({ id }) => github.rest.actions.deleteSelfHostedRunnerFromRepo({
             owner: context.repo.owner,
             repo: context.repo.repo,
@@ -252,13 +242,13 @@ jobs:
         inlineScript: |
           vmID=$(az vm show \
             --resource-group ${{ secrets.AZURE_ENVOY_BUILD_RESOURCE_GROUP }} \
-            --name envoy-${{ steps.setVMName.outputs.name }} \
+            --name ${{ steps.setVMName.outputs.name }} \
             --query id \
             -o tsv 2> /dev/null)
           
           vmNIC=$(az vm nic list \
             --resource-group ${{ secrets.AZURE_ENVOY_BUILD_RESOURCE_GROUP }} \
-            --vm-name envoy-${{ steps.setVMName.outputs.name }} \
+            --vm-name ${{ steps.setVMName.outputs.name }} \
             --query [].id \
             -o tsv 2> /dev/null)
           
