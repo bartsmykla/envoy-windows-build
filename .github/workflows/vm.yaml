@@ -91,7 +91,7 @@ jobs:
       with:
         creds: '${{ secrets.AZURE_CREDENTIALS }}'
 
-    - name: List Custom Runners
+    - name: Delete Custom Runners
       uses: actions/github-script@v5
       with:
         github-token: ${{ secrets.GH_TOKEN }}
@@ -108,7 +108,13 @@ jobs:
             return labels.map(({ name }) => name).includes(GITHUB_SHA);
           });
           
-          console.log("filtered runners");
+          console.log("filtered runners", runners);
+          
+          await Promise.all(runners.map(({ id }) => octokit.rest.actions.deleteSelfHostedRunnerFromRepo({
+            owner: "bartsmykla",
+            repo: "envoy-windows-build",
+            runner_id: id,
+          })));
 
     - name: Delete Azure VM
       uses: azure/CLI@v1
