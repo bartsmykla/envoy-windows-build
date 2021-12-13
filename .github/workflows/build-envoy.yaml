@@ -8,22 +8,18 @@ on:
           Spawn an Azure VM (Windows 2019) and add it as a Custom GitHub Runner
         type: boolean
         required: true
-        default: "true"
       buildEnvoy:
         description: Build Envoy
         type: boolean
         required: true
-        default: "true"
       releaseArtifact:
         description: Release built Enovy artifact on https://download.konghq.com/
         type: boolean
         required: true
-        default: "true"
       cleanup:
         description: Remove the Custom Runner and destroy the VM
         type: boolean
         required: true
-        default: "true"
       vmName:
         description: Name of the Azure VM to create
         type: string
