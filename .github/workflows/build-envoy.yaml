@@ -14,11 +14,6 @@ on:
         type: boolean
         required: true
         default: "true"
-      archiveArtifact:
-        description: Archive built Envoy artifact on GitHub (recommended)
-        type: boolean
-        required: true
-        default: "true"
       releaseArtifact:
         description: Release built Enovy artifact on https://download.konghq.com/
         type: boolean
@@ -192,7 +187,6 @@ jobs:
         ./ci/run_envoy_docker.sh 'ci/windows_ci_steps.sh ${{ github.event.inputs.bazelTarget }}'
 
     - name: Archive production artifacts
-      if: github.event.inputs.archiveArtifact == 'true'
       uses: actions/upload-artifact@v2
       with:
         name: envoy_${{ github.sha }}
