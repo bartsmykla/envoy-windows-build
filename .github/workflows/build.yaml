@@ -2,23 +2,60 @@ name: "Build envoy on windows"
 
 on:
   workflow_dispatch:
+    inputs:
+      commitHash:
+        description: The hash of a commit to build Envoy from
+        type: string
+        required: true
+        default: b16d390f11376e47f479778f2362ea4f48bdc895
+      bazelTarget:
+        description: Envoy target for Bazel
+        type: string
+        required: true
+        default: >-
+          //contrib/exe:envoy-static
+            --//contrib/sxg/filters/http/source:enabled=false
 
 jobs:
   build-envoy:
-    runs-on: self-hosted
+    runs-on:
+    - self-hosted
+    - Windows2019
     defaults:
       run:
         shell: bash
         working-directory: envoy
     steps:
-    - name: "Clone Envoy"
+    - name: Clone Repository
       uses: actions/checkout@v2
       with:
         token: ${{ github.token }}
+        path: tools
+
+    - name: Clone Envoy
+      uses: actions/checkout@v2
+      with:
+        token: ${{ github.token }}
+        ref: ${{ github.event.inputs.commitHash }}
         repository: envoyproxy/envoy
         path: envoy
-    - name: "Build Envoy"
+
+    - name: Patch ./ci/windows_ci_steps.sh script
+      run: |
+        patch ./ci/windows_ci_steps.sh ../tools/windows_ci_steps_sh.patch
+
+    - name: Build Envoy
       env:
         ENVOY_DOCKER_BUILD_DIR: "C:/build"
+        BAZEL_BUILD_OPTIONS: >-
+          --local_ram_resources=HOST_RAM*.8
+          --local_cpu_resources=HOST_CPUS-1
       run: |
-        ./ci/run_envoy_docker.sh ci/windows_ci_steps.sh
+        ./ci/run_envoy_docker.sh 'ci/windows_ci_steps.sh ${{ github.event.inputs.bazelTarget }}'
+
+    - name: Archive production artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: envoy_binary
+        path: |
+          C:/build/*.tar.gz

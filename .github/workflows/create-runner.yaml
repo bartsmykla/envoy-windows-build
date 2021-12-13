@@ -1,0 +1,102 @@
+name: Create Custom VM Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      vmName:
+        description: Name of the Azure VM to create
+        type: string
+        required: false
+      vmImage:
+        description: Azure VM Image for self-hosted Github Actions Runner
+        type: string
+        required: true
+        default: /subscriptions/6d1d2295-a73d-4e67-b2ba-0346952e7948/resourceGroups/bs-envoy-build/providers/Microsoft.Compute/images/windows2019
+      vmSize:
+        description: Size of the Azure VM which will be spawned to build Envoy
+        type: choice
+        required: true
+        default: Standard_HB60rs
+        options:
+        - Standard_D8s_v3
+        - Standard_D48s_v5
+        - Standard_HB60rs
+
+jobs:
+  deploy-custom-windows2019-runner:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set name of the VM to outputs
+      uses: actions/github-script@v5
+      id: setVMName
+      with:
+        script: |
+          let name = context.payload.inputs.vmName;
+          
+          if (!name) {
+            name = context.sha.substring(0, 7);
+          }
+          
+          core.setOutput("name", name);
+
+    - name: Log in with Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Create Azure VM
+      uses: azure/CLI@v1
+      with:
+        azcliversion: 2.31.0
+        inlineScript: |
+          az vm create \
+            --name envoy-${{ steps.setVMName.outputs.name }} \
+            --resource-group ${{ secrets.AZURE_ENVOY_BUILD_RESOURCE_GROUP }} \
+            --image ${{ secrets.AZURE_ENVOY_BUILD_IMAGE }} \
+            --admin-username ${{ secrets.AZURE_ENVOY_ADMIN_USERNAME }} \
+            --admin-password ${{ secrets.AZURE_ENVOY_ADMIN_PASSWORD }} \
+            --size ${{ github.event.inputs.vmSize }} \
+            --priority Spot \
+            --eviction-policy Delete \
+            --os-disk-delete-option Delete \
+            --nic-delete-option Delete \
+            --license-type Windows_Client
+
+    - name: Create Registration Token for Custom Runner and generate Runner Settings
+      uses: actions/github-script@v5
+      id: runnerToken
+      with:
+        github-token: ${{ secrets.GH_TOKEN }}
+        script: |
+          const response = await github.rest.actions.createRegistrationTokenForRepo({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+          });
+          
+          const { token } = response.data;
+          
+          core.setSecret(token);
+          
+          console.log('context', context);
+          console.log('sha', context.sha);
+          
+          const repositoryURL = `https://github.com/${context.repo.owner}/${context.repo.repo}`;
+          
+          const runnerSettings = JSON.stringify({
+            fileUris: ["https://raw.githubusercontent.com/bartsmykla/envoy-windows-build/main/ghactions.ps1"],
+            commandToExecute: `powershell.exe -File ghactions.ps1 -Token ${token} -LogonPassword ${{ secrets.AZURE_ENVOY_BUILD_LOGON_PASSWORD }} -RepositoryURL ${repositoryURL} -Labels ${context.sha},Windows2019`
+          });
+          
+          core.setOutput("runnerSettings", runnerSettings);
+
+    - name: Install Github Actions Agent on Azure VM
+      uses: azure/CLI@v1
+      with:
+        azcliversion: 2.31.0
+        inlineScript: |
+          az vm extension set \
+            --resource-group ${{ secrets.AZURE_ENVOY_BUILD_RESOURCE_GROUP }} \
+            --vm-name envoy-${{ steps.setVMName.outputs.name }} \
+            --name CustomScriptExtension \
+            --publisher Microsoft.Compute \
+            --protected-settings '${{ steps.runnerToken.outputs.runnerSettings }}'
