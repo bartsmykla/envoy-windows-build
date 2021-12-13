@@ -77,9 +77,6 @@ jobs:
           
           core.setSecret(token);
           
-          console.log('context', context);
-          console.log('sha', context.sha);
-          
           const repositoryURL = `https://github.com/${context.repo.owner}/${context.repo.repo}`;
           
           const runnerSettings = JSON.stringify({

@@ -1,5 +1,5 @@
 diff --git a/ci/windows_ci_steps.sh b/ci/windows_ci_steps.sh
-index 110535e63..cd0041da5 100755
+index eed32c121..3fb6402be 100755
 --- a/ci/windows_ci_steps.sh
 +++ b/ci/windows_ci_steps.sh
 @@ -75,10 +75,15 @@ fi
@@ -25,9 +25,9 @@ index 110535e63..cd0041da5 100755
 -  bazel "${BAZEL_STARTUP_OPTIONS[@]}" build "${BAZEL_BUILD_OPTIONS[@]}" //source/exe:envoy-static
 +  bazel "${BAZEL_STARTUP_OPTIONS[@]}" build "${BAZEL_BUILD_OPTIONS[@]}" ${TARGET_CMD[@]}
  
-   # Copy binary and pdb to delivery directory
+   # Copy binary to delivery directory
 -  cp -f bazel-bin/source/exe/envoy-static.exe "${ENVOY_DELIVERY_DIR}/envoy.exe"
 +  cp -f bazel-bin/contrib/exe/envoy-static.exe "${ENVOY_DELIVERY_DIR}/envoy.exe"
-   cp -f bazel-bin/source/exe/envoy-static.pdb "${ENVOY_DELIVERY_DIR}/envoy.pdb"
  
    # Copy for azp, creating a tar archive
+   tar czf "${ENVOY_BUILD_DIR}"/envoy_binary.tar.gz -C "${ENVOY_DELIVERY_DIR}" envoy.exe

@@ -1,4 +1,4 @@
-name: "Build envoy on windows"
+name: "Build Envoy for Windows"
 
 on:
   workflow_dispatch:
